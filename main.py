@@ -14,6 +14,7 @@ import requests
 class _ENV(NamedTuple):
     HOOK_KEY = os.getenv("HOOK_KEY")
     TARGET_URL = os.getenv("TARGET_URL")
+    ACTION = os.getenv("ACTION")
 ENV = _ENV()
 
 
@@ -24,16 +25,21 @@ def get_signing_key()-> bytes:
 
 def get_request_body()-> Dict:
     key = get_signing_key()
-    now_utc = datetime.utcnow().timestamp()
-    now_hmac = hmac.new(
-        key,
-        msg = b"%f" % now_utc,
-        digestmod = hashlib.sha256
-    )
-    now_signed = base64.b64encode(now_hmac.digest()).decode("utf-8")
+    now = datetime.noww().timestamp()
+    payload = {
+        "req_ts": now,
+        "action": ENV.ACTION,
+    }
+    payload_s = json.dumps(payload)
+    payload_hmac = hmac.new(key, digestmod = hashlib.sha256)
+    payload_hmac.update(payload_s.encode("utf-8"))
+    payload_signed = payload_hmac.digest()
+    payload_signed_b64 = base64.b64encode(payload_signed) \
+                               .decode("utf-8")
     return {
-        "time_utc": now_utc,
-        "time_utc_signed": now_signed,
+        "digest_algo": "SHA256",
+        "payload": payload_s,
+        "payload_signed_b64": payload_signed_b64,
     }
 
 
