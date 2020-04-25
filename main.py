@@ -25,7 +25,7 @@ def get_signing_key()-> bytes:
 
 def get_request_body()-> Dict:
     key = get_signing_key()
-    now = datetime.noww().timestamp()
+    now = datetime.now().timestamp()
     payload = {
         "req_ts": now,
         "action": ENV.ACTION,
